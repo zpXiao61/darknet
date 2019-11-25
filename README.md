@@ -1,15 +1,15 @@
+æ·»åŠ äº† darknet çš„ python æ¥å£ï¼Œåœ¨ä½¿ç”¨äº†å…¶å®ƒæ¥å£è¿›è¡Œæ¨¡å‹æ¨ç†çš„æƒ…å†µä¸‹ï¼Œå¯ä»¥å¤ç”¨ darknet åŸç”Ÿçš„å‰åå¤„ç†æ¥å£ã€‚
+
+# æ”¹åŠ¨ #
+1. åœ¨å¤´æ–‡ä»¶ 'include/darknet.h' ä¸­ æ·»åŠ äº† 'bm_get_network_boxes' å’Œ 'bm_load_image_and_resize_to_arr' ä¸¤ä¸ªå‡½æ•°ï¼›
+
+2. æ·»åŠ äº†æºæ–‡ä»¶ 'src/bm_func.c' å¹¶åœ¨å…¶ä¸­å®ç°äº†ä¸Šè¿°ä¸¤ä¸ªå‡½æ•°ï¼›
+
+3. åœ¨ Makefile çš„ç¬¬60è¡Œæ·»åŠ äº†ç¼–è¯‘ç›®æ ‡ bm_func.oï¼›
+
+4. æ·»åŠ äº†è„šæœ¬ 'python/darknet_sail_1682.py' ç”¨äºæµ‹è¯•ã€‚
+
 ![Darknet Logo](http://pjreddie.com/media/files/darknet-black-small.png)
-
-Ìí¼ÓÁË darknet µÄ python ½Ó¿Ú£¬ÔÚÊ¹ÓÃÁËÆäËü½Ó¿Ú½øĞĞÄ£ĞÍÍÆÀíµÄÇé¿öÏÂ£¬¿ÉÒÔ¸´ÓÃ darknet Ô­ÉúµÄÇ°ºó´¦Àí½Ó¿Ú¡£
-
-# ¸Ä¶¯ #
-1. ÔÚÍ·ÎÄ¼ş 'include/darknet.h' ÖĞ Ìí¼ÓÁË 'bm_get_network_boxes' ºÍ 'bm_load_image_and_resize_to_arr' Á½¸öº¯Êı£»
-
-2. Ìí¼ÓÁËÔ´ÎÄ¼ş 'src/bm_func.c' ²¢ÔÚÆäÖĞÊµÏÖÁËÉÏÊöÁ½¸öº¯Êı£»
-
-3. ÔÚ Makefile µÄµÚ60ĞĞÌí¼ÓÁË±àÒëÄ¿±ê bm_func.o£»
-
-4. Ìí¼ÓÁË½Å±¾ 'python/darknet_sail_1682.py' ÓÃÓÚ²âÊÔ¡£
 
 # Darknet #
 Darknet is an open source neural network framework written in C and CUDA. It is fast, easy to install, and supports CPU and GPU computation.

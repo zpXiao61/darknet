@@ -169,13 +169,14 @@ if __name__ == "__main__":
     #net = load_net(b"cfg/tiny-yolo.cfg", b"tiny-yolo.weights", 0)
     meta = load_meta(b"cfg/coco.data")
     anchors_ = [10,13, 16,30, 33,23, 30,61, 62,45, 59,119, 116,90, 156,198, 373,326]
+    net_size = 416 # defaul use 416
     anchors = (c_float * 18)()
     for i in range(18):
-        anchors[i] = anchors_[i]
+        anchors[i] = anchors_[i] * 416 / net_size
     engine = sail.Engine("/home/bitmain/yolov3_bmodel/compilation.bmodel", "0", sail.IOMode.SYSIO)
     graph_name = engine.get_graph_names()[0]
     input_tensor_name = engine.get_input_names(graph_name)[0]
-    r = detect(engine, graph_name, input_tensor_name, meta, ("data/dog.jpg").encode(encoding='utf-8'), anchors)
+    r = detect(engine, graph_name, input_tensor_name, meta, ("data/dog.jpg").encode(encoding='utf-8'), anchors, net_size=net_size)
     print(r)
     
 

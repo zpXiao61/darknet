@@ -1,4 +1,4 @@
-添加了 darknet 的 python 接口，在使用了其它接口进行模型推理的情况下，可以复用 darknet 原生的前后处理接口。
+ 新增了两个模型前后处理接口，在使用了其它接口进行模型推理的情况下，可以复用 darknet 原生的代码进行前后处理。
 
 # 改动 #
 1. 在头文件 'include/darknet.h' 中 添加了 'bm_get_network_boxes' 和 'bm_load_image_and_resize_to_arr' 两个函数；

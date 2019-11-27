@@ -119,10 +119,10 @@ rgbgr_image.argtypes = [IMAGE]
 #predict_image.restype = POINTER(c_float)
 
 bm_load_image_and_resize_to_arr = lib.bm_load_image_and_resize_to_arr
-bm_load_image_and_resize_to_arr.argtypes = [c_char_p, c_int, c_int, c_int, POINTER(c_float), POINTER(c_int)]
+bm_load_image_and_resize_to_arr.argtypes = [c_char_p, c_int, c_int, c_int, c_int, POINTER(c_float), POINTER(c_int)]
 
 bm_get_network_boxes = lib.bm_get_network_boxes
-bm_get_network_boxes.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int, c_int, c_int, c_int, c_float, c_float, POINTER(c_int), c_int, POINTER(c_int)]
+bm_get_network_boxes.argtypes = [POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int, c_int, c_int, c_int, c_int, c_int, c_float, c_float, POINTER(c_int), c_int, POINTER(c_int)]
 bm_get_network_boxes.restype = POINTER(DETECTION)
 
 
@@ -134,15 +134,14 @@ def classify(net, meta, im):
     res = sorted(res, key=lambda x: -x[1])
     return res
 
-def detect(bm_engine, bm_graph_name, bm_input_tensor_name, meta, image, anchors, thresh=.5, hier_thresh=.5, nms=.45, net_size=416, max_stride=32, classes=80, channels=255):
-    yolo0_size = int(net_size / max_stride) # 416 / 32 = 13
+def detect(bm_engine, bm_graph_name, bm_input_tensor_name, meta, image, anchors, thresh=.5, hier_thresh=.5, nms=.45, net_w=416, net_h=416, max_stride=32, classes=80, channels=255):
     number_obj_per_point = int(channels / (5 + classes)) # 255 / 85 = 3
 
-    input_len = 1 * 3 * net_size * net_size
+    input_len = 1 * 3 * net_w * net_h
     input_data = (c_float * input_len)()
     oriWH = (c_int * 2)()
-    bm_load_image_and_resize_to_arr(image, 0, 0, net_size, input_data, oriWH)
-    data = np.array(input_data).astype(np.float32).reshape(1, 3, net_size, net_size) # default, data shape is (1, 3, 416, 416) 
+    bm_load_image_and_resize_to_arr(image, 0, 0, net_w, net_h, input_data, oriWH)
+    data = np.array(input_data).astype(np.float32).reshape(1, 3, net_h, net_w) # default, data shape is (1, 3, 416, 416) 
 
     input_dict = {bm_input_tensor_name: data}
     output = bm_engine.process(bm_graph_name, input_dict) # default, output is a dict with three outputs, Yolo0 Yolo1 Yolo2
@@ -151,7 +150,7 @@ def detect(bm_engine, bm_graph_name, bm_input_tensor_name, meta, image, anchors,
     yolo0_ptr = output['Yolo0'].ctypes.data_as(POINTER(ctypes.c_float))
     yolo1_ptr = output['Yolo1'].ctypes.data_as(POINTER(ctypes.c_float))
     yolo2_ptr = output['Yolo2'].ctypes.data_as(POINTER(ctypes.c_float))
-    dets = bm_get_network_boxes(yolo0_ptr, yolo1_ptr, yolo2_ptr, anchors, yolo0_size, number_obj_per_point, classes, oriWH[0], oriWH[1], thresh, hier_thresh, None, 0, pnum)
+    dets = bm_get_network_boxes(yolo0_ptr, yolo1_ptr, yolo2_ptr, anchors, net_w, net_h, max_stride, number_obj_per_point, classes, oriWH[0], oriWH[1], thresh, hier_thresh, None, 0, pnum)
 
     if (nms): do_nms_obj(dets, pnum[0], meta.classes, nms);
 
@@ -169,14 +168,16 @@ if __name__ == "__main__":
     #net = load_net(b"cfg/tiny-yolo.cfg", b"tiny-yolo.weights", 0)
     meta = load_meta(b"cfg/coco.data")
     anchors_ = [10,13, 16,30, 33,23, 30,61, 62,45, 59,119, 116,90, 156,198, 373,326]
-    net_size = 416 # defaul use 416
+    net_w = 416 # defaul use 416
+    net_h = 416
     anchors = (c_float * 18)()
-    for i in range(18):
-        anchors[i] = anchors_[i] * 416 / net_size
+    for i in range(0,18,2):
+        anchors[i] = anchors_[i] * 416 / net_w
+        anchors[i+1] = anchors_[i+1] * 416 / net_h
     engine = sail.Engine("/home/bitmain/yolov3_bmodel/compilation.bmodel", "0", sail.IOMode.SYSIO)
     graph_name = engine.get_graph_names()[0]
     input_tensor_name = engine.get_input_names(graph_name)[0]
-    r = detect(engine, graph_name, input_tensor_name, meta, ("data/dog.jpg").encode(encoding='utf-8'), anchors, net_size=net_size)
+    r = detect(engine, graph_name, input_tensor_name, meta, ("data/dog.jpg").encode(encoding='utf-8'), anchors, net_w=net_w, net_h=net_h)
     print(r)
     
 

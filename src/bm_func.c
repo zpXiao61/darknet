@@ -87,12 +87,12 @@ void get_yolo_layer_output_data(network *net, int* ids, float* yolo0, float* yol
 }
 
 */
-int bm_num_detections_one_yolo_layer(float* yolo, int size, int classes, int obj_num, float thresh){
+int bm_num_detections_one_yolo_layer(float* yolo, int lw, int lh, int classes, int obj_num, float thresh){
     int i, n;
     int count = 0;
-    for (i = 0; i < size*size; ++i){
+    for (i = 0; i < lw * lh; ++i){
         for(n = 0; n < obj_num; ++n){
-            int obj_index  = n * (5 + classes) * size * size + 4 * size * size + i;
+            int obj_index  = n * (5 + classes) * lw * lh + 4 * lw * lh + i;
             if(yolo[obj_index] > thresh){
                 ++count;
             }
@@ -131,14 +131,16 @@ int bm_get_yolo_detections(float *predictions, float* anchors, int* mask, int cl
 }
 
 
-detection *bm_get_network_boxes(float* yolo0, float* yolo1, float* yolo2, float* anchors, int size_base, int n, int classes, int w, int h, float thresh, float hier, int *map, int relative, int *num)
+detection *bm_get_network_boxes(float* yolo0, float* yolo1, float* yolo2, float* anchors, int net_w, int net_h, int max_stride, int n, int classes, int w, int h, float thresh, float hier, int *map, int relative, int *num)
 {
   int i;
   int count;
   int nboxes = 0;
-  nboxes += bm_num_detections_one_yolo_layer(yolo0, size_base, classes, n, thresh);
-  nboxes += bm_num_detections_one_yolo_layer(yolo1, size_base * 2, classes, n, thresh);
-  nboxes += bm_num_detections_one_yolo_layer(yolo2, size_base * 4, classes, n, thresh);
+  int yolo0_w = net_w / max_stride;
+  int yolo0_h = net_h / max_stride;
+  nboxes += bm_num_detections_one_yolo_layer(yolo0, yolo0_w, yolo0_h, classes, n, thresh);
+  nboxes += bm_num_detections_one_yolo_layer(yolo1, yolo0_w * 2, yolo0_h * 2, classes, n, thresh);
+  nboxes += bm_num_detections_one_yolo_layer(yolo2, yolo0_w * 4, yolo0_h * 4, classes, n, thresh);
   if(num) *num = nboxes;
   detection *dets = calloc(nboxes, sizeof(detection));
   for (i=0; i<nboxes; i++){
@@ -149,21 +151,21 @@ detection *bm_get_network_boxes(float* yolo0, float* yolo1, float* yolo2, float*
   int mask_0[] = {6,7,8};
   int mask_1[] = {3,4,5};
   int mask_2[] = {0,1,2};
-  count = bm_get_yolo_detections(yolo0, anchors, mask_0, classes, n, size_base, size_base, w, h, 416, 416, thresh, map, relative, dets_);
+  count = bm_get_yolo_detections(yolo0, anchors, mask_0, classes, n, yolo0_w, yolo0_h, w, h, net_w, net_h, thresh, map, relative, dets_);
   dets_ += count;
-  count = bm_get_yolo_detections(yolo1, anchors, mask_1, classes, n, size_base*2, size_base*2, w, h, 416, 416, thresh, map, relative, dets_);
+  count = bm_get_yolo_detections(yolo1, anchors, mask_1, classes, n, yolo0_w*2, yolo0_h*2, w, h, net_w, net_h, thresh, map, relative, dets_);
   dets_ += count;
-  count = bm_get_yolo_detections(yolo2, anchors, mask_2, classes, n, size_base*4, size_base*4, w, h, 416, 416, thresh, map, relative, dets_);
+  count = bm_get_yolo_detections(yolo2, anchors, mask_2, classes, n, yolo0_w*4, yolo0_h*4, w, h, net_w, net_h, thresh, map, relative, dets_);
 
   return dets;
 }
 
 
-void get_preprocessed_image_data(int size, image im, float* out)
+void get_preprocessed_image_data(int net_w, int net_h, image im, float* out)
 {
     int data_len = 1;
-    data_len = 1 * 3 * size * size;
-    image imr = letterbox_image(im, size, size);
+    data_len = 1 * 3 * net_w * net_h;
+    image imr = letterbox_image(im, net_w, net_h);
     int i = 0;
     for (i=0; i< data_len; i++){
       out[i] = imr.data[i];
@@ -172,12 +174,12 @@ void get_preprocessed_image_data(int size, image im, float* out)
     return;
 }
 
-void bm_load_image_and_resize_to_arr(char *filename, int w, int h, int size, float* out, int* oriWH)
+void bm_load_image_and_resize_to_arr(char *filename, int w, int h, int net_w, int net_h, float* out, int* oriWH)
 {
     image im = load_image(filename, w, h, 3);
     oriWH[0] = im.w;
     oriWH[1] = im.h;
-    get_preprocessed_image_data(size, im, out);
+    get_preprocessed_image_data(net_w, net_h, im, out);
     free_image(im);
     return;
 }

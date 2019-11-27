@@ -803,7 +803,7 @@ float rand_normal();
 float rand_uniform(float min, float max);
 
 
-detection *bm_get_network_boxes(float* yolo0, float* yolo1, float* yolo2, float* anchors, int size_base, int n, int classes, int w, int h, float thresh, float hier, int *map, int relative, int *num);
-void bm_load_image_and_resize_to_arr(char *filename, int w, int h, int size, float* out, int* oriWH);
+detection *bm_get_network_boxes(float* yolo0, float* yolo1, float* yolo2, float* anchors, int net_w, int net_h, int max_stride, int n, int classes, int w, int h, float thresh, float hier, int *map, int relative, int *num);
+void bm_load_image_and_resize_to_arr(char *filename, int w, int h, int net_w, int net_h, float* out, int* oriWH);
 
 #endif

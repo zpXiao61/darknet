@@ -172,8 +172,8 @@ if __name__ == "__main__":
     net_h = 416
     anchors = (c_float * 18)()
     for i in range(0,18,2):
-        anchors[i] = anchors_[i] * 416 / net_w
-        anchors[i+1] = anchors_[i+1] * 416 / net_h
+        anchors[i] = anchors_[i]# * 416 / net_w
+        anchors[i+1] = anchors_[i+1]# * 416 / net_h
     engine = sail.Engine("/home/bitmain/yolov3_bmodel/compilation.bmodel", "0", sail.IOMode.SYSIO)
     graph_name = engine.get_graph_names()[0]
     input_tensor_name = engine.get_input_names(graph_name)[0]
